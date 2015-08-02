@@ -56,13 +56,40 @@ describe('Controller: GridController', function () {
   //Tests
   it('getDefinition Function', function () {
     //Assemble
+    // This is where you create a new target object, and set up any mock objects that are needed to execute the test.
+    var promiseResponseExpected = 'Response';
     spyOn(dashboardService, 'getWidgetDefinition').andCallThrough();
+    spyOn(wGridService, 'parseWidgetJSON').andCallThrough();
     var expected = { $$state : { status : 1, value: undefined } };
     //Act
+    //This is where you actually invoke the target method.
     var returned = createController().getDefinition();
     scope.$apply();
 
      //Assert
+    //This is where you validate the results.
+    expect(_.isEqual(returned, expected)).toBeTruthy();
+    //Verify
+    //Tis is where you validate the calls to other services
+    expect(dashboardService.getWidgetDefinition).toHaveBeenCalled();
+    expect(wGridService.parseWidgetJSON).toHaveBeenCalledWith (promiseResponseExpected);
+  });
+
+  it('getDefinition Function: Error response', function () {
+    //Assemble
+    //Custom call to check error handler. This overrides the mock service function
+    spyOn(dashboardService, 'getWidgetDefinition').andCallFake(function() {
+      var deferred = $q.defer();
+      deferred.reject('Error');
+      return deferred.promise;
+    });
+    var expected = { $$state : { status : 1, value: undefined } };
+
+    //Act
+    var returned = createController().getDefinition();
+    scope.$apply();
+
+    //Assert
     expect(_.isEqual(returned, expected)).toBeTruthy();
     //Verify
     expect(dashboardService.getWidgetDefinition).toHaveBeenCalled();
@@ -92,5 +119,18 @@ describe('Controller: GridController', function () {
     expect(returned).toBeUndefined();
     //Verify
     expect(eventHandlerService.sendEvent).toHaveBeenCalled();
+  });
+
+  //TODO Complete when the subscribe event callback has the full implementation
+  it('callback event subscriber Function', function () {
+    //Assemble
+    spyOn(eventHandlerService, 'subscribeToEvent').andCallThrough();
+    //Act
+    var controller = createController();
+    scope.$apply();
+    //Assert
+
+    //Verify
+    expect(eventHandlerService.subscribeToEvent).toHaveBeenCalled();
   });
 });
